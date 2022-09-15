@@ -1,0 +1,62 @@
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/codemirror.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/codemirror.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/lint/lint.min.css" integrity="sha512-jP1+o6s94WQS9boYeDP3Azh8ihI5BxGgBZNjkABhx05MqH5WuDzfzSnoPxGxVzWi/gxxVHZHvWkdRM6SMy5B0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/theme/monokai.min.css" integrity="sha512-R6PH4vSzF2Yxjdvb2p2FA06yWul+U0PDDav4b/od/oXf9Iw37zl10plvwOXelrjV2Ai7Eo3vyHeyFUjhXdBCVQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" integrity="sha512-CSBhVREyzHAjAFfBlIBakjoRUKp5h7VSweP0InR/pAJyptH7peuhCsqAI/snV+TwZmXZqoUklpXp6R6wMnYf5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/lint/yaml-lint.min.js" integrity="sha512-7iVs+YReo3FBJkUjfQj6GxgmTfhLOUXNvTkyA+hFK4hiyVbFXM26kpsTth9Wft+s56iNxXpJ0ai/gKH9AKhWoQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/mode/yaml/yaml.min.js" integrity="sha512-+aXDZ93WyextRiAZpsRuJyiAZ38ztttUyO/H3FZx4gOAOv4/k9C6Um1CvHVtaowHZ2h7kH0d+orWvdBLPVwb4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<h1>Flatplane</h1>
+<table>
+    <tr>
+        <td>
+<form method="POST">
+    <label>Composite resource:</label><br />
+    <textarea id="compositeResource" name="compositeResource" rows="14" cols="90">
+{{ .CompositeResource }}</textarea>
+        <br />
+    <label>Composition:</label><br />
+    <textarea id="composition" name="composition" rows="30" cols="90">
+{{ .Composition }}</textarea>
+    <br />
+    <input type="submit">
+</form>
+        </td>
+        <td>
+            {{if .POST}}
+            <h1>Rendered resources</h1>
+            {{end}}
+
+
+            <pre>
+{{ .Response }}
+            </pre>
+
+            <pre>
+{{ .Error }}
+            </pre>
+        </td>
+    </tr>
+</table>
+
+<script>
+ var editor = CodeMirror.fromTextArea(document.getElementById("compositeResource"), {
+     // TODO: why doesn't linting work?
+     theme: "monokai",
+     mode: "text/x-yaml",
+     gutters: ['CodeMirror-lint-markers'],
+     lint: true,
+     lineNumbers: true
+ });
+ var editor2 = CodeMirror.fromTextArea(document.getElementById("composition"), {
+     theme: "monokai",
+     language: "yaml",
+     mode: "yaml",
+     gutters: ['CodeMirror-lint-markers'],
+     lint: true,
+     lineNumbers: true
+ });
+</script>
