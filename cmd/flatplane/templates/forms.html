@@ -8,34 +8,41 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/mode/yaml/yaml.min.js" integrity="sha512-+aXDZ93WyextRiAZpsRuJyiAZ38ztttUyO/H3FZx4gOAOv4/k9C6Um1CvHVtaowHZ2h7kH0d+orWvdBLPVwb4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-
+<style>
+ body {
+     background: #232323; color: white;
+     font-family: system-ui
+ }
+ .CodeMirror {
+     height: auto;
+ }
+</style>
 <h1>Flatplane</h1>
 <table>
     <tr>
         <td>
-<form method="POST">
-    <label>Composite resource:</label><br />
-    <textarea id="compositeResource" name="compositeResource" rows="14" cols="90">
+<form method="POST" id="form">
+    <h3>Composite resource:</h3>
+    <textarea id="compositeResource" name="compositeResource" cols="90">
 {{ .CompositeResource }}</textarea>
         <br />
-    <label>Composition:</label><br />
+    <h3>Composition:</h3>
     <textarea id="composition" name="composition" rows="30" cols="90">
 {{ .Composition }}</textarea>
     <br />
     <input type="submit">
 </form>
         </td>
-        <td>
+        <td style="vertical-align:top">
             {{if .POST}}
-            <h1>Rendered resources</h1>
+            <h3>Rendered resources:</h3>
             {{end}}
 
 
-            <pre>
-{{ .Response }}
-            </pre>
+            <textarea id="response" name="response" rows="30" cols="90">
+{{ .Response }}</textarea>
 
-            <pre>
+            <pre id="error">
 {{ .Error }}
             </pre>
         </td>
@@ -43,7 +50,7 @@
 </table>
 
 <script>
- var editor = CodeMirror.fromTextArea(document.getElementById("compositeResource"), {
+ var editorCR = CodeMirror.fromTextArea(document.getElementById("compositeResource"), {
      // TODO: why doesn't linting work?
      theme: "monokai",
      mode: "text/x-yaml",
@@ -51,7 +58,7 @@
      lint: true,
      lineNumbers: true
  });
- var editor2 = CodeMirror.fromTextArea(document.getElementById("composition"), {
+ var editorC = CodeMirror.fromTextArea(document.getElementById("composition"), {
      theme: "monokai",
      language: "yaml",
      mode: "yaml",
@@ -59,4 +66,38 @@
      lint: true,
      lineNumbers: true
  });
+
+ var editorResp = CodeMirror.fromTextArea(document.getElementById("response"), {
+     theme: "monokai",
+     language: "yaml",
+     mode: "yaml",
+     gutters: ['CodeMirror-lint-markers'],
+     lint: true,
+     lineNumbers: true
+ });
+
+ function change(instance, changeObj) {
+     const payload = new URLSearchParams();
+     payload.append('compositeResource', editorCR.getValue())
+     payload.append('composition', editorC.getValue())
+
+     fetch("/", {
+         body: payload,
+         headers: {
+             "Content-Type": "application/x-www-form-urlencoded",
+             "Accept": "application/json",
+         },
+         method: "post",
+     })
+         .then((response) => response.json())
+         .then((data) => {
+             console.dir(data)
+             editorResp.setValue(data.Response)
+             document.getElementById('error').innerHTML = data.Error
+         });
+ }
+
+ editorCR.on("change", change)
+ editorC.on("change", change)
+
 </script>

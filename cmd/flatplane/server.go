@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -65,7 +66,7 @@ func serve() {
 			CompositeResource string
 			Composition       string
 			Response          string
-			Error             error
+			Error             string
 		}
 		if r.Method != http.MethodPost {
 			err := tmpl.Execute(w, Response{CompositeResource: cr, Composition: composition})
@@ -81,8 +82,18 @@ func serve() {
 			POST:              true,
 		}
 
-		resp.Response, resp.Error = eval(resp.CompositeResource, resp.Composition)
-		err := tmpl.Execute(w, resp)
+		var err error
+		resp.Response, err = eval(resp.CompositeResource, resp.Composition)
+		if err != nil {
+			resp.Error = err.Error()
+			log.Println(err)
+		}
+
+		if r.Header.Get("Accept") == "application/json" {
+			err = json.NewEncoder(w).Encode(resp)
+		} else {
+			err = tmpl.Execute(w, resp)
+		}
 		if err != nil {
 			log.Println(err)
 		}

@@ -76,19 +76,20 @@ func eval(compositeResource, composition string) (string, error) {
 	// TODO: allow bootstrapped objects in input
 
 	// TODO: also an array of mutations on them (to emulate changes done by the provider, for example status updates)
-	cd := &composed.Unstructured{
-		Unstructured: unstructured.Unstructured{
-			Object: map[string]interface{}{
-				"apiVersion": "database.gcp.crossplane.io/v1beta1",
-				"kind":       "CloudSQLInstance",
-				"labels": map[string]interface{}{
-					"crossplane.io/composite": "foo",
+	cd := &composed.Unstructured{}
+	/*
+			Unstructured: unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "database.gcp.crossplane.io/v1beta1",
+					"kind":       "CloudSQLInstance",
+					"labels": map[string]interface{}{
+						"crossplane.io/composite": "foo",
+					},
+					"metadata": &metav1.ObjectMeta{Name: "cd"},
 				},
-				"metadata": &metav1.ObjectMeta{Name: "cd"},
 			},
-		},
-	}
-
+		}
+	*/
 	client := &test.MockClient{MockCreate: test.NewMockCreateFn(nil)}
 	r := composite.NewAPIDryRunRenderer(client)
 	err := r.Render(context.Background(), &cpr, cd, comp.Spec.Resources[0])
