@@ -1,10 +1,14 @@
 package main
 
 import (
+	"embed"
 	"html/template"
 	"log"
 	"net/http"
 )
+
+//go:embed templates/*
+var resources embed.FS
 
 // bootstrap some files for the user
 const cr = `apiVersion: database.example.org/v1alpha1
@@ -53,7 +57,7 @@ spec:
       toFieldPath: spec.forProvider.settings.dataDiskSizeGb`
 
 func serve() {
-	tmpl := template.Must(template.ParseFiles("forms.html"))
+	tmpl := template.Must(template.ParseFS(resources, "templates/forms.html"))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		type Response struct {
