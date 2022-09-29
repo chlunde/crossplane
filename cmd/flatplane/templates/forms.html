@@ -1,12 +1,14 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/codemirror.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/codemirror.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/lint/lint.min.css" integrity="sha512-jP1+o6s94WQS9boYeDP3Azh8ihI5BxGgBZNjkABhx05MqH5WuDzfzSnoPxGxVzWi/gxxVHZHvWkdRM6SMy5B0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/theme/monokai.min.css" integrity="sha512-R6PH4vSzF2Yxjdvb2p2FA06yWul+U0PDDav4b/od/oXf9Iw37zl10plvwOXelrjV2Ai7Eo3vyHeyFUjhXdBCVQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/theme/dracula.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js" integrity="sha512-CSBhVREyzHAjAFfBlIBakjoRUKp5h7VSweP0InR/pAJyptH7peuhCsqAI/snV+TwZmXZqoUklpXp6R6wMnYf5Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/lint/yaml-lint.min.js" integrity="sha512-7iVs+YReo3FBJkUjfQj6GxgmTfhLOUXNvTkyA+hFK4hiyVbFXM26kpsTth9Wft+s56iNxXpJ0ai/gKH9AKhWoQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/mode/yaml/yaml.min.js" integrity="sha512-+aXDZ93WyextRiAZpsRuJyiAZ38ztttUyO/H3FZx4gOAOv4/k9C6Um1CvHVtaowHZ2h7kH0d+orWvdBLPVwb4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/fold/foldcode.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/fold/foldgutter.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.8/addon/fold/indent-fold.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <style>
  body {
@@ -16,8 +18,14 @@
  .CodeMirror {
      height: auto;
  }
+ .CodeMirror-scroll {
+     height: auto;
+     max-height: 66vh;
+ }
+ .errmark {width: .8em;}
+ .errline {background-color: #711;}
 </style>
-<h1>Flatplane</h1>
+<h1>Crossplane playground</h1>
 <table>
     <tr>
         <td>
@@ -50,33 +58,56 @@
 </table>
 
 <script>
+ function checkYAML(editor) {
+     editor.clearGutter('errmark')
+
+     for (var i = 0; i < editor.lineCount(); i++) {
+         editor.removeLineClass(i, 'background')
+     }
+     try {
+         jsyaml.loadAll(editor.getValue());
+     } catch(e) {
+         const makeMarker = () => {
+             var marker = document.createElement('div');
+             marker.style.color = "#822"
+             marker.innerHTML = "&#x2718;"
+             return marker
+         }
+         if (e.mark) {
+             editor.setGutterMarker(e.mark.line, 'errmark', makeMarker())
+             editor.addLineClass(e.mark.line, 'background', 'errline')
+         }
+     }
+ }
+
  var editorCR = CodeMirror.fromTextArea(document.getElementById("compositeResource"), {
-     // TODO: why doesn't linting work?
-     theme: "monokai",
+     theme: "dracula",
      mode: "text/x-yaml",
-     gutters: ['CodeMirror-lint-markers'],
-     lint: true,
+     foldGutter: true,
+     extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", 'errmark'],
      lineNumbers: true
  });
  var editorC = CodeMirror.fromTextArea(document.getElementById("composition"), {
-     theme: "monokai",
-     language: "yaml",
-     mode: "yaml",
-     gutters: ['CodeMirror-lint-markers'],
-     lint: true,
+     theme: "dracula",
+     mode: 'text/x-yaml',
+     foldGutter: true,
+     extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", 'errmark'],
      lineNumbers: true
  });
 
  var editorResp = CodeMirror.fromTextArea(document.getElementById("response"), {
-     theme: "monokai",
-     language: "yaml",
-     mode: "yaml",
-     gutters: ['CodeMirror-lint-markers'],
-     lint: true,
+     theme: "dracula",
+     mode: 'text/x-yaml',
+     foldGutter: true,
+     extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+     gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", 'errmark'],
      lineNumbers: true
  });
 
  function change(instance, changeObj) {
+     checkYAML(instance)
      const payload = new URLSearchParams();
      payload.append('compositeResource', editorCR.getValue())
      payload.append('composition', editorC.getValue())
@@ -91,7 +122,6 @@
      })
          .then((response) => response.json())
          .then((data) => {
-             console.dir(data)
              editorResp.setValue(data.Response)
              document.getElementById('error').innerHTML = data.Error
          });
